@@ -1,0 +1,27 @@
+# books-files — Dockge stack on the host that runs Chaptarr.
+#
+# Serves finished ebooks to books-agent and converts them to EPUB / AZW3 /
+# MOBI with Calibre. The library is mounted read-only. Put FILES_TOKEN in the
+# stack's .env (same value as in books-agent).
+
+services:
+  books-files:
+    image: ghcr.io/zchesler/books-files:latest
+    container_name: books-files
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      TZ: UTC
+      MAX_CONVERSIONS: "2"
+    ports:
+      # Every request except /healthz needs the bearer token.
+      - "8790:8790"
+    volumes:
+      # Chaptarr's ebook root folder, read-only, and a cache for conversions.
+      - /path/to/ebooks:/ebooks:ro
+      - /path/to/appdata/books-files/cache:/cache
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
